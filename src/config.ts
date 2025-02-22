@@ -11,7 +11,7 @@ export default {
   maxListeners: 15,
   customUserDataDir: './userDataDir/',
   webhook: {
-    url: null,
+    url: 'http://localhost:8000/api/v1/whatsapp-webhook',
     autoDownload: true,
     uploadS3: false,
     readMessage: true,
@@ -44,6 +44,8 @@ export default {
     logger: ['console', 'file'],
   },
   createOptions: {
+    headless: false, // Abre o navegador visível
+    devtools: true, // Abre o DevTools do Chrome para debugging
     browserArgs: [
       '--disable-web-security',
       '--no-sandbox',

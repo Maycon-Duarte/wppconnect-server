@@ -21,6 +21,7 @@ import { logger } from '..';
 import config from '../config';
 import { backupSessions, restoreSessions } from '../util/manageSession';
 import { clientsArray } from '../util/sessionUtil';
+import path from 'path';
 
 export async function backupAllSessions(req: Request, res: Response) {
   /**
@@ -135,48 +136,58 @@ export async function takeScreenshot(req: Request, res: Response) {
 }
 
 export async function clearSessionData(req: Request, res: Response) {
-  /**
-   #swagger.tags = ["Misc"]
-   #swagger.autoBody=false
-    #swagger.parameters["secretkey"] = {
-    required: true,
-    schema: 'THISISMYSECURETOKEN'
-    }
-    #swagger.parameters["session"] = {
-    schema: 'NERDWHATS_AMERICA'
-    }
-  */
-
   try {
     const { secretkey, session } = req.params;
+    logger.info(`Recebendo solicitação para limpar sessão: ${session}`);
 
     if (secretkey !== config.secretKey) {
-      res.status(400).json({
+      logger.warn(`Token incorreto fornecido: ${secretkey}`);
+      return res.status(400).json({
         response: 'error',
         message: 'The token is incorrect',
       });
     }
+
     if (req?.client?.page) {
-      delete clientsArray[req.params.session];
+      logger.info(`Finalizando sessão ativa: ${session}`);
+      delete clientsArray[session];
       await req.client.logout();
+    } else {
+      logger.info(`Nenhuma sessão ativa encontrada para: ${session}`);
     }
-    const path = config.customUserDataDir + session;
-    const pathToken = __dirname + `../../../tokens/${session}.data.json`;
-    if (fs.existsSync(path)) {
-      await fs.promises.rm(path, {
-        recursive: true,
-      });
+
+    // Caminho absoluto para os diretórios de sessão e token
+    const pathSession = path.resolve(config.customUserDataDir, session);
+    const pathToken = path.resolve(
+      __dirname,
+      '../../tokens',
+      `${session}.data.json`
+    );
+
+    logger.info(`Verificando e removendo diretório: ${pathSession}`);
+    if (fs.existsSync(pathSession)) {
+      logger.info(`Removendo diretório: ${pathSession}`);
+      await fs.promises.rm(pathSession, { recursive: true, force: true });
+    } else {
+      logger.warn(`Diretório não encontrado: ${pathSession}`);
     }
+
+    logger.info(`Verificando e removendo token: ${pathToken}`);
     if (fs.existsSync(pathToken)) {
-      await fs.promises.rm(pathToken);
+      logger.info(`Removendo token: ${pathToken}`);
+      await fs.promises.rm(pathToken, { force: true });
+    } else {
+      logger.warn(`Token não encontrado: ${pathToken}`);
     }
+
+    logger.info(`Sessão ${session} removida com sucesso`);
     res.status(200).json({ success: true });
   } catch (error: any) {
-    logger.error(error);
+    logger.error(`Erro ao limpar sessão ${req.params.session}:`, error);
     res.status(500).json({
       status: false,
       message: 'Error on clear session data',
-      error: error,
+      error: error.message,
     });
   }
 }

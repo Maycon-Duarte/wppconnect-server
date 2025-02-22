@@ -89,7 +89,7 @@ export default class CreateSessionUtil {
               attempt: any,
               urlCode: string
             ) => {
-              this.exportQR(req, base64Qr, urlCode, client, res);
+              this.exportQR(req, base64Qr, urlCode, client, session, res);
             },
             onLoadingScreen: (percent: string, message: string) => {
               req.logger.info(`[${session}] ${percent}% - ${message}`);
@@ -112,7 +112,7 @@ export default class CreateSessionUtil {
                 }
                 callWebHook(client, req, 'status-find', {
                   status: statusFind,
-                  session: client.session,
+                  session: session,
                 });
                 req.logger.info(statusFind + '\n\n');
               } catch (error) {}
@@ -196,6 +196,7 @@ export default class CreateSessionUtil {
     qrCode: any,
     urlCode: any,
     client: WhatsAppServer,
+    session: string,
     res?: any
   ) {
     eventEmitter.emit(`qrcode-${client.session}`, qrCode, urlCode, client);
@@ -210,13 +211,13 @@ export default class CreateSessionUtil {
 
     req.io.emit('qrCode', {
       data: 'data:image/png;base64,' + imageBuffer.toString('base64'),
-      session: client.session,
+      session: session,
     });
 
     callWebHook(client, req, 'qrcode', {
       qrcode: qrCode,
       urlcode: urlCode,
-      session: client.session,
+      session: session,
     });
     if (res && !res._headerSent)
       res.status(200).json({
