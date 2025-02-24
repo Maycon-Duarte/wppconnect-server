@@ -1,17 +1,19 @@
 import { ServerOptions } from './types/ServerOptions';
+import dotenv from 'dotenv';
+dotenv.config();
 
 export default {
-  secretKey: 'THISISMYSECURETOKEN',
+  secretKey: process.env.SECRET_KEY,
   host: 'http://localhost',
-  port: '21465',
-  deviceName: 'WppConnect',
-  poweredBy: 'WPPConnect-Server',
+  port: '2020',
+  deviceName: 'Z-API Pro',
+  poweredBy: 'Z-API',
   startAllSession: true,
   tokenStoreType: 'file',
   maxListeners: 15,
   customUserDataDir: './userDataDir/',
   webhook: {
-    url: 'http://localhost:8000/api/v1/whatsapp-webhook',
+    url: process.env.WEBHOOK_URL,
     autoDownload: true,
     uploadS3: false,
     readMessage: true,
@@ -44,8 +46,8 @@ export default {
     logger: ['console', 'file'],
   },
   createOptions: {
-    headless: false, // Abre o navegador visível
-    devtools: true, // Abre o DevTools do Chrome para debugging
+    headless: process.env.PRODUCTION === 'true',
+    devtools: process.env.PRODUCTION === 'false',
     browserArgs: [
       '--disable-web-security',
       '--no-sandbox',
