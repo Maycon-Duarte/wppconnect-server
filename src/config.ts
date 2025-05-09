@@ -5,7 +5,7 @@ dotenv.config();
 export default {
   secretKey: process.env.SECRET_KEY || 'wppconnect',
   host: 'http://localhost',
-  port: '2020',
+  port: '21465',
   deviceName: 'Z-API Pro',
   poweredBy: 'Z-API',
   startAllSession: true,
